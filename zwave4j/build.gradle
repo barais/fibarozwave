@@ -1,0 +1,127 @@
+apply plugin: "maven"
+apply plugin: "java"
+apply plugin: "application"
+apply plugin: "idea"
+apply plugin: "cpp-lib"
+apply plugin: 'eclipse'
+
+
+group = "org.zwave4j"
+version = "0.2"
+mainClassName = "org.zwave4j.Main"
+
+ext {
+    openZWaveDir = project.openZWaveDir
+    openZWaveLibFile = project.openZWaveLibFile
+    openZWaveConfigDir = project.openZWaveConfigDir
+    zWaveControllerPort = project.zWaveControllerPort
+
+    javaHome = System.getenv("JAVA_HOME")
+    nativeClasses = ["org.zwave4j.Manager", "org.zwave4j.Options"]
+
+    additionalNativeLibsDir = "${projectDir}/native_libs"
+
+    srcNativeLibsDir = "native_libs"
+
+    def osName = System.properties["os.name"]
+    if (osName == "Linux") {
+        os = "linux"
+    } else if (osName.startsWith("Windows")) {
+        os = "windows"
+    } else if (osName == "SunOS") {
+        os = "solaris"
+    } else if (osName.endsWith("OS X")) {
+        os = "os_x"
+    }
+
+    def architectureName = System.properties["os.arch"]
+    if (architectureName.endsWith("86")) {
+        architecture = "x86"
+    } else if (architectureName == "amd64") {
+        architecture = "amd64"
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+libraries {
+    main {
+        spec {
+            includes(files("${javaHome}/include"))
+            includes(files("${javaHome}/include/win32"))
+            includes(files("${javaHome}/include/linux"))
+            includes(files("${openZWaveDir}/cpp/src"))
+            includes(files("${openZWaveDir}/cpp/src/value_classes"))
+            includes(files("${openZWaveDir}/cpp/src/command_classes"))
+            includes(files("${openZWaveDir}/cpp/src/platform"))
+            includes(files("${openZWaveDir}/cpp/src/platform/unix"))
+            includes(files("${openZWaveDir}/cpp/src/platform/windows"))
+            args openZWaveLibFile
+            if (architecture == "amd64") {
+                args "-m64"
+            }
+            if (architecture == "x86") {
+                args "-m32"
+            }
+            if (os == "windows") {
+                args "-static"
+                args "-lsetupapi"
+                if (architecture == "x86") {
+                    args "-Wl,--kill-at"
+                }
+            }
+        }
+    }
+}
+
+task generateNativeHeaders(type: Exec, dependsOn: classes) {
+    inputs.dir(sourceSets.main.output.classesDir)
+    outputs.files(cpp.sourceSets.main.exportedHeaders.files)
+    commandLine "javah"
+    args "-d", cpp.sourceSets.main.exportedHeaders.srcDirs.iterator()[0]
+    args "-classpath", sourceSets.main.runtimeClasspath.asPath
+    args nativeClasses
+}
+
+compileMain.dependsOn generateNativeHeaders
+
+task copyNativeLibs(type: Copy, dependsOn: compileMain) {
+    into "${sourceSets.main.output.classesDir}/${srcNativeLibsDir}"
+    from "${additionalNativeLibsDir}"
+    from "${buildDir}/binaries", {
+        into "${os}/${architecture}"
+    }
+}
+
+jar.dependsOn copyNativeLibs
+
+run {
+    dependsOn copyNativeLibs
+    standardInput = System.in
+    jvmArgs([
+            "-Xdebug",
+            "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+    ])
+    args([
+            openZWaveConfigDir,
+            zWaveControllerPort
+    ])
+}
+
+task srcJar(type: Jar) {
+    from sourceSets.main.java.srcDirs
+    classifier = "sources"
+}
+
+task configZip(type: Zip) {
+    from openZWaveConfigDir
+    classifier = "ozw_config"
+}
+
+artifacts {
+    archives srcJar
+    archives configZip
+}
