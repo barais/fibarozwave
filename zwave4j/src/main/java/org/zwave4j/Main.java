@@ -143,7 +143,7 @@ public class Main {
 							notification.getValueId().getType().name(), manager
 									.getValueLabel(notification.getValueId()),
 							getValue(notification.getValueId())));
-					if (notification.getNodeId() == 4)
+					if (notification.getNodeId() == 6)
 						valueslist.add(notification.getValueId());
 					break;
 				case VALUE_REMOVED:
@@ -269,8 +269,8 @@ public class Main {
 					
 					manager.refreshValue(id5);
 					//System.err.println("polled " + manager.isValuePolled(id5));
-					//manager.getValueAsFloat(id5, val7);
-					//System.err.println("power value get " + val7.get());
+					manager.getValueAsFloat(id5, val7);
+					System.err.println("power value get " + val7.get());
 					
 					try {
 						Thread.sleep(2000);
@@ -283,7 +283,7 @@ public class Main {
 			}
 		});
 
-		t.start();
+		//t.start();
 
 		final BufferedReader br = new BufferedReader(new InputStreamReader(
 				System.in));

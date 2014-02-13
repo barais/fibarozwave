@@ -96,6 +96,7 @@ public class FibaroPlugManager implements FibaroPlugManagerItf {
 				case NODE_PROTOCOL_INFO:
 					break;
 				case VALUE_ADDED:
+					System.err.println(notification.getNodeId() +" " + notification.getValueId().getCommandClassId());
 					valueslist.get(notification.getNodeId()).add(
 							notification.getValueId());
 					if (notification.getValueId().getCommandClassId() == 37)
@@ -188,8 +189,9 @@ public class FibaroPlugManager implements FibaroPlugManagerItf {
 	@Override
 	public void swithOn(short plugno) {
 		ValueId id2 = valuesswitchlist.get(plugno);
+		System.err.println(id2);
 		AtomicReference<Boolean> val = new AtomicReference<Boolean>();
-		manager.getValueAsBool(id2, val);
+		//manager.getValueAsBool(id2, val);
 		manager.setValueAsBool(id2, true);
 		// manager.setValueAsBool(id2, true);
 		// manager.setValueAsBool(id2, true);
@@ -199,10 +201,11 @@ public class FibaroPlugManager implements FibaroPlugManagerItf {
 	 * @see org.zwave4j.fibaro.FibaroPlugManagerItf#swithOff(int)
 	 */
 	@Override
-	public void swithOff(int plugno) {
+	public void swithOff(short plugno) {
 		ValueId id2 = valuesswitchlist.get(plugno);
+		System.err.println(id2);
 		AtomicReference<Boolean> val = new AtomicReference<Boolean>();
-		manager.getValueAsBool(id2, val);
+		//manager.getValueAsBool(id2, val);
 		manager.setValueAsBool(id2, false);
 
 	}
@@ -215,7 +218,7 @@ public class FibaroPlugManager implements FibaroPlugManagerItf {
 		for (Short plugno : valuesswitchlist.keySet()) {
 			ValueId id2 = valuesswitchlist.get(plugno);
 			AtomicReference<Boolean> val = new AtomicReference<Boolean>();
-			manager.getValueAsBool(id2, val);
+			//manager.getValueAsBool(id2, val);
 			manager.setValueAsBool(id2, true);
 		}
 	}
@@ -238,7 +241,7 @@ public class FibaroPlugManager implements FibaroPlugManagerItf {
 	 * @see org.zwave4j.fibaro.FibaroPlugManagerItf#getInstantConsoForPlug(int, org.zwave4j.fibaro.AsyncCallback)
 	 */
 	@Override
-	public void getInstantConsoForPlug(final int plugno,
+	public void getInstantConsoForPlug(final short plugno,
 			final AsyncCallback<Float> cb) {
 
 		manager.addWatcher(new NotificationWatcher() {

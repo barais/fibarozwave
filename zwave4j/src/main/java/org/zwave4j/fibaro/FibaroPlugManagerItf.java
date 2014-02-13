@@ -14,13 +14,13 @@ public interface FibaroPlugManagerItf {
 
 	public abstract void swithOn(short plugno);
 
-	public abstract void swithOff(int plugno);
+	public abstract void swithOff(short plugno);
 
 	public abstract void swithAllOn();
 
 	public abstract void swithAllOff();
 
-	public abstract void getInstantConsoForPlug(int plugno,
+	public abstract void getInstantConsoForPlug(short plugno,
 			AsyncCallback<Float> cb);
 
 	public abstract void removeObserverForConso(Observer obs);
